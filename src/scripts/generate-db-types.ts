@@ -24,7 +24,7 @@ function requireEnv(name: string): string {
 }
 
 function introspectDatabase(outFile: string): void {
-  const url = `postgres://${requireEnv('DB_USER')}:${requireEnv('DB_PASSWORD')}@${requireEnv('DB_HOST')}:${requireEnv('DB_PORT')}/${requireEnv('DB_NAME')}`
+  const url = `postgres://${requireEnv('POSTGRES_USER')}:${requireEnv('POSTGRES_PASSWORD')}@${requireEnv('DB_HOST')}:${requireEnv('DB_PORT')}/${requireEnv('POSTGRES_DB')}`
 
   execFileSync(
     process.execPath,

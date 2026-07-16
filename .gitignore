@@ -18,6 +18,7 @@ build
 .http
 .env
 .env.test
+.env.prod
 .eslintcache
 
 npm-debug.log*
@@ -30,6 +31,10 @@ secrets.json
 *.tfplan
 *.lock.hcl
 .terraform
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+!*.tfvars.example
 
 archive.zip
 
@@ -45,3 +50,4 @@ packages.tar.gz
 .package.json
 .package-module.json
 .unused.log
+.claude/

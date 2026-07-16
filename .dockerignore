@@ -1,0 +1,10 @@
+node_modules
+build
+.git
+.env
+.env.test
+.env.prod
+Archive.zip
+tennis_player_data.json
+cucumber-report.html
+infra/terraform

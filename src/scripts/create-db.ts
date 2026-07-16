@@ -1,19 +1,21 @@
 import { Pool } from 'pg'
 
-const POSTGRES_DB = 'postgres'
+const DEFAULT_ADMIN_DB = 'postgres'
 
 async function createDatabaseIfNotExists() {
-  const dbName = process.env.DB_NAME
+  const dbName = process.env.POSTGRES_DB
   if (!dbName) {
-    throw new Error("DB_NAME manquant dans les variables d'environnement.")
+    throw new Error(
+      "POSTGRES_DB manquant dans les variables d'environnement.",
+    )
   }
 
   const adminPool = new Pool({
     host: process.env.DB_HOST ?? 'localhost',
     port: Number(process.env.DB_PORT ?? 5432),
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: POSTGRES_DB,
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    database: DEFAULT_ADMIN_DB,
   })
 
   try {
