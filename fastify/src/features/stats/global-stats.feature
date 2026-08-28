@@ -9,8 +9,8 @@ Feature: Global statistics
       | FRA  |
     And the following players exist:
       | firstname | lastname | shortname | sex | birthday   | weight | height | points |
-      | Alice     | Martin   | A.MAR     | F   | 1990-01-01 | 80000  | 200    | 1000   |
-      | Bob       | Durand   | B.DUR     | M   | 1990-01-01 | 72000  | 160    | 1000   |
+      | Alice     | Martin   | A.MAR     | F   | 1990-01-01 |  80000 |    200 |   1000 |
+      | Bob       | Durand   | B.DUR     | M   | 1990-01-01 |  72000 |    160 |   1000 |
     When I view the global statistics
     Then the response has status 200
     And the average BMI is 24.0625
@@ -23,8 +23,8 @@ Feature: Global statistics
       | ESP  |
     And the following players exist:
       | firstname | lastname | shortname | sex | birthday   | weight | height | points | country |
-      | Fabien    | Petit    | F.PET     | M   | 1990-01-01 | 80000  | 185    | 1000   | FRA     |
-      | Eva       | Lopez    | E.LOP     | F   | 1990-01-01 | 65000  | 170    | 1000   | ESP     |
+      | Fabien    | Petit    | F.PET     | M   | 1990-01-01 |  80000 |    185 |   1000 | ESP     |
+      | Eva       | Lopez    | E.LOP     | F   | 1990-01-01 |  65000 |    170 |   1000 | ESP     |
     And the following match history is recorded for player "F.PET":
       | result | date       |
       | win    | 2026-07-01 |
@@ -35,7 +35,7 @@ Feature: Global statistics
       | win    | 2026-06-24 |
     When I view the global statistics
     Then the response has status 200
-    And the country with the best win ratio is "ESP" with a win ratio of 1
+    And the country with the best win ratio is "ESP" with a win ratio of 0.75
 
   Scenario: No statistics available when there is no data
     When I view the global statistics

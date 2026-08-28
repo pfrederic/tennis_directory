@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist" /* Redirect output structure to the directory. */,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "module": "CommonJS",
+    "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
+    "skipLibCheck": true,
+    "target": "ES2022" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019' or 'ESNEXT'. */,
+    "allowJs": true /* Allow javascript files to be compiled. */,
+    "resolveJsonModule": true /* Include modules imported with .json extension. */,
+    "sourceMap": true,
+    "strict": true /* Enable all strict type-checking options. */,
+    "noUncheckedIndexedAccess": true /* Add undefined to a type when accessed using an index. */,
+    "allowSyntheticDefaultImports": true,
+    "lib": ["ES2022"],
+    "types": ["node", "jest"],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "incremental": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false
+  },
+  "include": ["src/**/*", "src/**/*.json"],
+  "exclude": ["node_modules", ".eslintrc.js", "src/_legacy/**", "test/**"]
+}

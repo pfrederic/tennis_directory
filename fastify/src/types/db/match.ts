@@ -5,5 +5,5 @@ export interface MatchDb {
   date: Timestamp
   id: Generated<number>
   isWinning: boolean
-  player_id: number | null
+  player_id: number
 }

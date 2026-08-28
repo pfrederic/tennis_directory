@@ -54,7 +54,7 @@ export class StatsService {
         'nb_games_played_by_country.country_id',
       )
       .select(
-        sql<number>`COUNT(match.id)/NULLIF(nb_games_played_by_country.nb_games_played, 0)`.as(
+        sql<number>`COUNT(match.id)::float8/NULLIF(nb_games_played_by_country.nb_games_played, 0)::float8`.as(
           'win_ratio',
         ),
       )

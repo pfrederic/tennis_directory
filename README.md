@@ -1,152 +1,47 @@
 # Tennis Directory
 
-A small [Fastify](https://fastify.dev/) + TypeScript REST API for managing a directory of tennis players (and their match results), built on PostgreSQL with [Kysely](https://kysely.dev/) as the query builder/migrator.
+A small REST API for a directory of tennis players (and their match results) — players list/search/create, plus a few aggregate stats (average BMI, median height, country with the best match win ratio) computed from player and match data.
 
-It exposes endpoints to list/create players and to compute a few aggregate statistics (average BMI, median height, country with the best win ratio) from the player and match data.
+This repository implements that exact same spec **twice**, in two independent projects:
 
-## Tech stack
+- [`fastify/`](fastify/README.md) — Fastify 5 + [Kysely](https://kysely.dev/) (SQL-close query builder) + PostgreSQL
+- [`nest/`](nest/README.md) — NestJS 11 + [TypeORM](https://typeorm.io/) (DI, decorators, entities/migrations) + PostgreSQL
 
-- **Runtime**: Node.js 22, TypeScript, run via `tsx`
-- **HTTP framework**: Fastify 5
-- **Database**: PostgreSQL, accessed with Kysely (query builder, migrations, seeds, codegen)
-- **Testing**: Cucumber (`@cucumber/cucumber`) for BDD-style feature tests
-- **Deployment**: Docker Compose + Caddy (reverse proxy/TLS) on AWS Lightsail via Terraform, deployed on demand via GitHub Actions — see [DEPLOY.md](DEPLOY.md)
+## Why the same thing twice?
 
-## Getting started (local)
+This is a learning exercise / POC playground, not a product. Keeping the functional spec identical between the two folders removes "what to build" as a variable, so the only thing that differs between `fastify/` and `nest/` is the stack itself:
 
-### Prerequisites
+- **Fastify + Kysely** stays close to SQL and plain functions: hand-rolled plugins, a query builder rather than an ORM, generated DB types.
+- **NestJS + TypeORM** is the opinionated, batteries-included alternative: modules/DI/decorators, active-record-style entities, class-based migrations, declarative validation pipes.
 
-- Node.js >= 22
-- Yarn
-- Docker (to run PostgreSQL locally)
+It's meant as reference material for comparing the two on concrete, small problems — pagination, request validation, a raw-SQL stats endpoint, migrations + seed data, Docker/Caddy/Terraform deployment — rather than reading about the differences in the abstract.
 
-### 1. Install dependencies
+## Repository layout
 
-```bash
-yarn install
-```
+| Folder | Stack | Status |
+|---|---|---|
+| [`fastify/`](fastify/README.md) | Fastify 5 + Kysely + PostgreSQL | Feature-complete, covered by a Cucumber test suite, the implementation actually deployed to production |
+| [`nest/`](nest/README.md) | NestJS 11 + TypeORM + PostgreSQL | Same endpoints reimplemented; no automated tests yet; `/stats` currently errors ([details](nest/README.md#known-gaps)); deployment scaffolding copied from `fastify/` but never provisioned |
 
-### 2. Start PostgreSQL
+Each folder is a **fully independent project** — its own `package.json`, lockfile, `.env`, `Dockerfile`, `docker-compose*.yml`. Install and run them separately; see each project's own README for setup instructions.
 
-A local Postgres instance is provided via Docker Compose:
+## The spec, implemented twice
 
-```bash
-docker compose up -d
-```
+- `GET /players` — paginated, searchable list of players
+- `GET /players/:id` — a single player
+- `POST /players` — create a player, attached to a country
+- `GET /stats` — average BMI, median height, country with the best match win ratio
 
-### 3. Configure environment
+Request/response details (query params, body shape, quirks specific to each stack) are documented in each project's own README.
 
-A `.env` file is already present at the repo root for local dev (matching the `docker-compose.yml` credentials — `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB` are the same names the official Postgres image itself expects, kept as the single source of truth):
+## Things to know before touching both at once
 
-```
-POSTGRES_DB=tennis_directory
-DB_HOST=localhost
-DB_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-ENV=dev
-```
-
-There's also an `.env.test` used when running the test suite.
-
-### 4. Run migrations (and seed data)
-
-```bash
-yarn migrate:run
-yarn migrate:seed
-```
-
-`migrate:run` creates the database (if needed) and applies all Kysely migrations; `migrate:seed` inserts sample players/countries/matches.
-
-### 5. Start the server
-
-```bash
-yarn start
-```
-
-This regenerates the Kysely DB types (`db:codegen`) and starts the server with `tsx watch`, listening on `http://localhost:3000` by default (override with `PORT`).
-
-### Running tests
-
-```bash
-yarn test
-```
-
-Runs the Cucumber feature suite against `.env.test` (make sure the `tennis_directory_test` database exists — `yarn migrate:run` with `ENV_FILE=.env.test` if needed).
-
-### Linting
-
-```bash
-yarn lint
-```
-
-## API reference
-
-Base URL (local): `http://localhost:3000`
-
-### Health
-
-Simple liveness check.
-
-```bash
-curl http://localhost:3000/health
-```
-
-### List players
-
-Paginated list of players, sortable by ranking points.
-
-- Query params: `page` (default `1`), `pageSize` (default `10`, max `100`), `rankSort` (`asc` | `desc`, default `desc`)
-
-```bash
-curl "http://localhost:3000/players?page=1&pageSize=10&rankSort=desc"
-```
-
-### Get a player by id
-
-```bash
-curl http://localhost:3000/players/1
-```
-
-### Create a player
-
-```bash
-curl -X POST http://localhost:3000/players \
-  -H "Content-Type: application/json" \
-  -d '{
-    "firstname": "Novak",
-    "lastname": "Djokovic",
-    "shortname": "N.DJO",
-    "sex": "M",
-    "picture": "https://example.com/djokovic.png",
-    "birthday": "1987-05-22",
-    "weight": 80,
-    "height": 188,
-    "points": 12000,
-    "country_id": 1
-  }'
-```
-
-### Get global stats
-
-Returns average BMI, median height, and the country with the best match win ratio.
-
-```bash
-curl http://localhost:3000/stats
-```
-
-## Deployment
-
-Runs on a single AWS Lightsail instance (app + Postgres via Docker Compose, Caddy handling automatic HTTPS), provisioned with Terraform. Deploys are triggered manually from the GitHub Actions "Deploy" workflow (`workflow_dispatch`) and gated on the Cucumber test suite passing first.
-
-See [DEPLOY.md](DEPLOY.md) for the full deployment guide (in French).
+- Both apps default to port `3000`, and both projects ship a local `docker-compose.yml` publishing Postgres on `5432` — you can't run `fastify/` and `nest/` side by side without changing ports/DB name in one of them.
+- Both `Caddyfile`s point at the same domain (`tennis-directory.pif-engineer.com`), but only `fastify/infra/terraform/` holds real Terraform state — that's the implementation actually running in production; `nest/`'s deployment files are unwired scaffolding.
+- A few files at the repo root — `.config/cucumber.json`, `.config/kysely.config.ts`, `.github/workflows/deploy.yml` — predate this repo being split into `fastify/`/`nest/` subfolders and still assume a flat, single-project layout. They resolve paths relative to a project root that no longer matches either subfolder, so `fastify/`'s own `yarn test` / `yarn migrate:run` and the root deploy workflow don't run as-is post-split. That's a known side effect of this reorg, not yet cleaned up.
 
 ## AI
 
-Part of this repo was generated or modified with the help of Claude Code:
+This README and [`nest/README.md`](nest/README.md) were written with the help of Claude Code, based on reading through both codebases and actually running the `nest/` app locally to confirm its documented behavior (including the `/stats` bug noted above). The per-project deployment infra (`Dockerfile`, `docker-compose.prod.yml`, `Caddyfile`, Terraform, the GitHub Actions workflow, `DEPLOY.md`) predates this reorg and was itself generated with Claude Code for the `fastify/` implementation — see the AI section in [`fastify/README.md`](fastify/README.md) for details.
 
-- **Deployment infra** (near-entirely generated): `Dockerfile`, `.dockerignore`, `docker-compose.prod.yml`, `Caddyfile`, `.env.prod.example`, all of `infra/terraform/`, `.github/workflows/deploy.yml`, `DEPLOY.md`.
-- **Adjustments to existing application code**: Fastify network binding (`src/server.ts`), consolidating DB env vars onto the official Postgres names (`src/infra/db/dialect.ts`, `src/scripts/create-db.ts`, `src/scripts/generate-db-types.ts`), reclassifying `kysely-ctl` as a production dependency (`package.json`).
-- `src/scripts/generate-db-types.ts` also carries its own marker (`GENERATED BY IA - CLAUDE CODE`), generated before this session.
-
-Everything else (business logic, tests, project structure) is hand-written code.
+Business logic, tests, and overall project structure in both `fastify/` and `nest/` are hand-written.

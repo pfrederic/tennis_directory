@@ -10,6 +10,7 @@ cucumber-report.html
 
 # production
 build
+dist
 
 # misc
 .idea
