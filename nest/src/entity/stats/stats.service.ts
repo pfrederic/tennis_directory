@@ -29,31 +29,30 @@ export class StatsService {
   }
 
   getCountryWithBestRatio() {
-    const queryBuilder = this.dataSource.createQueryBuilder()
-    const nbGamesPlayedByCountry = queryBuilder
+    const nbGamesPlayedByCountry = this.dataSource.createQueryBuilder()
       .from('match', 'm')
       .innerJoin('player', 'p', 'm.player_id = p.id')
-      .select('p.countryId', 'countryId')
-      .groupBy('p.countryId')
+      .select('p.country_id', 'country_id')
+      .groupBy('p.country_id')
       .addSelect('COUNT(m.id)', 'nbGames')
-    return queryBuilder
+    return this.dataSource.createQueryBuilder()
       .addCommonTableExpression(
         nbGamesPlayedByCountry,
         'nb_games_played_by_country',
       )
       .from('match', 'm')
       .innerJoin('player', 'p', 'm.player_id = p.id AND m.is_winning = true')
-      .innerJoin('country', 'c', 'p.countryId = c.id')
-      .select('c.name', 'countryName')
+      .innerJoin('country', 'c', 'p.country_id = c.id')
+      .select('c.code', 'code')
       .addSelect('COUNT(m.id)', 'nbWins')
-      .groupBy('c.name')
+      .groupBy('c.code').addGroupBy(`nb_games."nbGames"`)
       .innerJoin(
         'nb_games_played_by_country',
         'nb_games',
-        'nb_games.countryId = p.countryId',
+        'nb_games.country_id = p.country_id',
       )
       .addSelect(
-        'COUNT(m.id)::float8 / NULLIF(nb_games.nbGames, 0)::float8',
+        'COUNT(m.id)::float8 / NULLIF(nb_games."nbGames", 0)::float8',
         'winRatio',
       )
       .orderBy('winRatio', 'DESC')
