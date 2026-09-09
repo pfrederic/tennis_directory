@@ -2,7 +2,7 @@ import { Pool } from 'pg'
 
 const DEFAULT_ADMIN_DB = 'postgres'
 
-async function createDatabaseIfNotExists() {
+export async function createDatabaseIfNotExists() {
   const dbName = process.env.DB_NAME
   if (!dbName) {
     throw new Error("DB_NAME manquant dans les variables d'environnement.")
@@ -39,7 +39,11 @@ async function createDatabaseIfNotExists() {
   }
 }
 
-createDatabaseIfNotExists().catch(err => {
-  console.error('❌ Erreur lors de la création de la base :', err)
-  process.exit(1)
-})
+// Only run automatically when executed as a script (`yarn migrate:run`),
+// not when imported (e.g. from the e2e test global setup).
+if (require.main === module) {
+  createDatabaseIfNotExists().catch(err => {
+    console.error('❌ Erreur lors de la création de la base :', err)
+    process.exit(1)
+  })
+}

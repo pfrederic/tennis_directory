@@ -10,7 +10,7 @@ This is a from-scratch reimplementation of the same functional spec as the sibli
 - **HTTP framework**: NestJS 11 (modules, controllers, dependency injection), on top of Express
 - **Database**: PostgreSQL, accessed with TypeORM (entities, migrations, query builder)
 - **Validation**: `class-validator` / `class-transformer` DTOs, enforced by a global `ValidationPipe`
-- **Testing**: Jest is wired up (`test`, `test:e2e` scripts) but the project currently has **no `*.spec.ts` / `*.e2e-spec.ts` files** — unlike `fastify/`, which has a full Cucumber suite
+- **Testing**: Jest is wired up (`test`, `test:e2e` scripts). `test:e2e` runs real e2e tests against a dedicated Postgres database (see below); there are still no `*.spec.ts` unit tests, and e2e coverage is currently limited to `/stats`
 - **Deployment**: `Dockerfile`, `docker-compose.prod.yml`, `Caddyfile` and `DEPLOY.md` mirror the `fastify/` setup, but `infra/terraform/` is empty and there's no `.env.prod.example` here — nothing has actually been provisioned for this implementation yet
 
 ## Getting started (local)
@@ -70,11 +70,11 @@ Runs `nest start --watch`, listening on `http://localhost:3000` by default (over
 ### Running tests
 
 ```bash
-yarn test      # unit tests (Jest)
+yarn test      # unit tests (Jest) — no *.spec.ts files exist yet
 yarn test:e2e  # e2e tests (Jest, ./test/jest-e2e.json)
 ```
 
-Both are configured, but there is currently nothing for them to run — no spec files exist yet. (`test.js` at the project root is an unrelated scratch file, not part of any suite.)
+`test:e2e` needs Postgres running (step 2 above) and a `.env` with valid `DB_HOST`/`DB_PORT`/`DB_USERNAME`/`DB_PASSWORD` (step 3) — it overrides `DB_NAME` to a separate `tennis_directory_test` database so it never touches dev data. A Jest `globalSetup` (`test/global-setup.ts`) creates that database if needed and (re)builds the schema from `1786045103101-init_db.ts` before every run — no manual migration step required. Each spec then seeds its own rows straight into the tables and asserts on the real HTTP response (`supertest` against an in-process Nest app), and cleans up after itself. (`test.js` at the project root is an unrelated scratch file, not part of any suite.)
 
 ### Linting
 
@@ -144,16 +144,15 @@ Two details that differ from `fastify/`'s version of this same endpoint:
 curl http://localhost:3000/stats
 ```
 
-Intended to return average BMI, median height, and the country with the best match win ratio — same as `fastify/`'s `/stats`. See **Known gaps** below: this endpoint currently errors.
+Returns average BMI, median height, and the country with the best match win ratio — same as `fastify/`'s `/stats`. Covered by an e2e test (`test/stats.e2e-spec.ts`).
 
 ## Known gaps
 
-- **`GET /stats` returns `500`.** `getAVG_IMC` and `getHeightMedian` work, but `getCountryWithBestRatio` throws `TypeORMError: Nested CTEs aren't supported (CTE: nb_games_played_by_country)` — it builds the CTE's subquery from the very same `QueryBuilder` instance it then attaches the CTE to, which TypeORM rejects. (Verified by running the app locally.) Fixing that surfaces a second issue: the query then selects `c.name`, but the `country` table (see `1786045103101-init_db.ts`) only has `id`, `picture` and `code` — no `name` column.
-- **No automated tests.** `test`/`test:e2e` are wired via Jest, but no `*.spec.ts` or `*.e2e-spec.ts` files exist yet.
+- **No unit tests.** `test:e2e` now covers `/stats` end-to-end (see **Running tests**), but there are still no `*.spec.ts` unit tests, and no e2e coverage for the `players` endpoints.
 - **Deployment isn't provisioned.** `infra/terraform/` is empty and `.env.prod.example` (referenced by `DEPLOY.md`) doesn't exist in this folder — the deployment files here were adapted from `fastify/`'s (which *is* deployed) but never run for this implementation.
 
 ## AI
 
-This README was written with the help of Claude Code, after reading through the whole `src/` tree and actually running the app locally (build, migrate, start, `curl` against every endpoint) to confirm the behavior described above, including the `/stats` bug. The deployment scaffolding (`Dockerfile`, `docker-compose.prod.yml`, `Caddyfile`, `DEPLOY.md`) was carried over from the `fastify/` implementation and adapted, but — per **Known gaps** — never actually exercised for `nest/`.
+This README was written with the help of Claude Code, after reading through the whole `src/` tree and actually running the app locally (build, migrate, start, `curl` against every endpoint) to confirm the behavior described above. The deployment scaffolding (`Dockerfile`, `docker-compose.prod.yml`, `Caddyfile`, `DEPLOY.md`) was carried over from the `fastify/` implementation and adapted, but — per **Known gaps** — never actually exercised for `nest/`.
 
 Everything else (business logic, entities, modules, project structure) is hand-written code.

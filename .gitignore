@@ -1,16 +1,16 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
 # dependencies
-node_modules
-node_modules*
+**/node_modules
+**/node_modules/*
 
 # testing
 coverage
 cucumber-report.html
 
 # production
-build
-dist
+**/build
+**/dist/
 
 # misc
 .idea
