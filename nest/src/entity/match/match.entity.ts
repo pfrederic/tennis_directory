@@ -5,6 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
+
 import { Player } from '../player/player.entity'
 
 @Entity()

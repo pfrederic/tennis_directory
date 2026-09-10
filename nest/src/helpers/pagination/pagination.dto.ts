@@ -1,6 +1,5 @@
-import { IsPositive, IsOptional, Max } from 'class-validator'
 import { Type } from 'class-transformer'
-import { IsInt } from 'class-validator'
+import { IsPositive, IsOptional, Max, IsInt } from 'class-validator'
 
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 10

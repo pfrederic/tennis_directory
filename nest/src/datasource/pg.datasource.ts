@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm'
+
 import PgConfig from '@/config/pg.config'
 
 const PgDataSource = new DataSource({

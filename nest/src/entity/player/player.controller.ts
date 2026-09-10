@@ -6,10 +6,12 @@ import {
   Post,
   Body,
 } from '@nestjs/common'
+
+import { AddPlayerDto, GetPlayersDto } from './player.dto'
 import { PlayerService } from './player.service'
+
 import { Paginated } from '@/helpers/pagination/pagination.decorator'
 import { PaginationQuery } from '@/helpers/pagination/pagination.query'
-import { AddPlayerDto, GetPlayersDto } from './player.dto'
 
 @Controller('players')
 export class PlayerController {

@@ -1,4 +1,4 @@
-import { Pool } from 'pg'
+import { DatabaseError, Pool } from 'pg'
 
 const DEFAULT_ADMIN_DB = 'postgres'
 
@@ -28,8 +28,8 @@ export async function createDatabaseIfNotExists() {
     } else {
       console.log(`ℹ️  Base "${dbName}" existe déjà.`)
     }
-  } catch (err: any) {
-    if (err.code === '42P04') {
+  } catch (err) {
+    if (err instanceof DatabaseError && err.code === '42P04') {
       console.log(`ℹ️  Base "${dbName}" déjà créée par un autre process.`)
     } else {
       throw err

@@ -32,9 +32,6 @@ export default tsEslint.config(
       },
     },
     rules: {
-      'no-unused-expressions': 0,
-      '@typescript-eslint/no-unused-expressions': 0,
-      'chai-friendly/no-unused-expressions': 'error',
       'no-unused-vars': 0,
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -64,6 +61,8 @@ export default tsEslint.config(
       '@typescript-eslint/no-base-to-string': 0,
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/no-unnecessary-type-parameters': 0,
+      // Nest modules are idiomatically empty classes carrying only a `@Module()` decorator.
+      '@typescript-eslint/no-extraneous-class': 0,
     },
   },
   {

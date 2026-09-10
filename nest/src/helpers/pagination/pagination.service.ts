@@ -1,5 +1,6 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common'
 import { DiscoveryService, MetadataScanner, Reflector } from '@nestjs/core'
+
 import { PAGINATED_KEY } from './pagination.decorator'
 import { PAGINATION_QUERY } from './pagination.query'
 
@@ -13,18 +14,22 @@ export class PaginationService implements OnApplicationBootstrap {
   onApplicationBootstrap() {
     const controllers = this.discoveryService.getControllers()
     controllers.forEach(controller => {
-      const methods = this.metadataScanner.getAllMethodNames(
-        controller?.metatype?.prototype,
-      )
+      const prototype = controller?.metatype?.prototype as
+        Record<string, (...args: unknown[]) => unknown> | undefined
+      if (!prototype) return
+
+      const methods = this.metadataScanner.getAllMethodNames(prototype)
       methods.forEach(method => {
+        // method comes straight from enumerating prototype's own methods, so it's always present.
+        const target = prototype[method]!
         const hasPaginationQueryDecorator = this.reflector.get<boolean>(
           PAGINATION_QUERY,
-          controller?.metatype?.prototype[method],
+          target,
         )
 
         const hasPaginatedDecorator = this.reflector.get<boolean>(
           PAGINATED_KEY,
-          controller?.metatype?.prototype[method],
+          target,
         )
         if (hasPaginationQueryDecorator !== hasPaginatedDecorator) {
           throw new Error(

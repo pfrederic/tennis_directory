@@ -1,10 +1,11 @@
+import dayjs from 'dayjs'
+import type { MigrationInterface, QueryRunner } from 'typeorm'
+import type { QueryDeepPartialEntity } from 'typeorm/browser'
+
 import { Country } from '@/entity/country/country.entity'
 import { Match } from '@/entity/match/match.entity'
 import { Player } from '@/entity/player/player.entity'
-import { Sex } from '@/types/common'
-import dayjs from 'dayjs'
-import { MigrationInterface, QueryRunner } from 'typeorm'
-import { QueryDeepPartialEntity } from 'typeorm/browser'
+import type { Sex } from '@/types/common'
 
 const playersData = [
   {

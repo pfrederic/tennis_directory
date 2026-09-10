@@ -1,12 +1,11 @@
-import {
-  createParamDecorator,
-  ExecutionContext,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common'
-import { ClassConstructor, plainToInstance } from 'class-transformer'
+import type { ExecutionContext } from '@nestjs/common'
+import { createParamDecorator, HttpException, HttpStatus } from '@nestjs/common'
+import type { ClassConstructor } from 'class-transformer'
+import { plainToInstance } from 'class-transformer'
 import { validateSync } from 'class-validator'
-import { PaginationDto } from './pagination.dto'
+
+import type { PaginationDto } from './pagination.dto'
+import type { RequestWithPagination } from './pagination.interface'
 
 export const PAGINATION_QUERY = 'paginationQuery'
 
@@ -15,7 +14,7 @@ const paramDecorator = createParamDecorator(
     dtoClass: ClassConstructor<T>,
     ctx: ExecutionContext,
   ) => {
-    const request = ctx.switchToHttp().getRequest()
+    const request = ctx.switchToHttp().getRequest<RequestWithPagination>()
     const instance = plainToInstance(dtoClass, request.query)
     const errors = validateSync(instance, {
       whitelist: true,
@@ -37,15 +36,18 @@ const paramDecorator = createParamDecorator(
 
 export function PaginationQuery<T extends PaginationDto>(
   dtoClass: ClassConstructor<T>,
-) {
+): ParameterDecorator {
   const decorator = paramDecorator(dtoClass)
 
-  return (
-    target: any,
-    propertyKey: string | symbol,
-    parameterIndex: number,
-  ) => {
-    Reflect.defineMetadata(PAGINATION_QUERY, true, target[propertyKey])
+  return (target, propertyKey, parameterIndex) => {
+    if (propertyKey !== undefined) {
+      // propertyKey names the decorated method itself, so it's always present on target.
+      Reflect.defineMetadata(
+        PAGINATION_QUERY,
+        true,
+        (target as Record<string | symbol, object>)[propertyKey]!,
+      )
+    }
     decorator(target, propertyKey, parameterIndex)
   }
 }

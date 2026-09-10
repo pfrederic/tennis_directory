@@ -1,5 +1,3 @@
-import { PaginationDto } from '@/helpers/pagination/pagination.dto'
-import { Sex, Sort } from '@/types/common'
 import {
   IsDateString,
   IsEnum,
@@ -9,6 +7,9 @@ import {
   IsUrl,
   Min,
 } from 'class-validator'
+
+import { PaginationDto } from '@/helpers/pagination/pagination.dto'
+import { Sex, Sort } from '@/types/common'
 
 export class GetPlayersDto extends PaginationDto {
   @IsString()

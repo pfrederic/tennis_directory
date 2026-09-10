@@ -5,8 +5,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { Sex } from '@/types/common'
+
 import { Country } from '@/entity/country/country.entity'
+import { Sex } from '@/types/common'
 
 @Entity()
 export class Player {

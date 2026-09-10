@@ -2,6 +2,12 @@ import { Injectable } from '@nestjs/common'
 import { InjectDataSource } from '@nestjs/typeorm'
 import { DataSource } from 'typeorm'
 
+interface CountryBestRatioRow {
+  code: string
+  nbWins: string
+  winRatio: string
+}
+
 @Injectable()
 export class StatsService {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
@@ -13,7 +19,7 @@ export class StatsService {
       .select(
         `AVG((p.weight / 1000.0) / POWER(p.height / 100.0, 2))::float8 as avg_imc`,
       )
-      .getRawOne()
+      .getRawOne<{ avg_imc: number }>()
     return result?.avg_imc ?? 0
   }
 
@@ -24,18 +30,20 @@ export class StatsService {
       .select(
         `PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY p.height)::float8 as height_median`,
       )
-      .getRawOne()
+      .getRawOne<{ height_median: number }>()
     return result?.height_median ?? 0
   }
 
-  getCountryWithBestRatio() {
-    const nbGamesPlayedByCountry = this.dataSource.createQueryBuilder()
+  getCountryWithBestRatio(): Promise<CountryBestRatioRow | undefined> {
+    const nbGamesPlayedByCountry = this.dataSource
+      .createQueryBuilder()
       .from('match', 'm')
       .innerJoin('player', 'p', 'm.player_id = p.id')
       .select('p.country_id', 'country_id')
       .groupBy('p.country_id')
       .addSelect('COUNT(m.id)', 'nbGames')
-    return this.dataSource.createQueryBuilder()
+    return this.dataSource
+      .createQueryBuilder()
       .addCommonTableExpression(
         nbGamesPlayedByCountry,
         'nb_games_played_by_country',
@@ -45,7 +53,8 @@ export class StatsService {
       .innerJoin('country', 'c', 'p.country_id = c.id')
       .select('c.code', 'code')
       .addSelect('COUNT(m.id)', 'nbWins')
-      .groupBy('c.code').addGroupBy(`nb_games."nbGames"`)
+      .groupBy('c.code')
+      .addGroupBy(`nb_games."nbGames"`)
       .innerJoin(
         'nb_games_played_by_country',
         'nb_games',
@@ -57,6 +66,6 @@ export class StatsService {
       )
       .orderBy('winRatio', 'DESC')
       .limit(1)
-      .getRawOne()
+      .getRawOne<CountryBestRatioRow>()
   }
 }
